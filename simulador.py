@@ -228,22 +228,26 @@ def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones):
                 actual, oponente = oponente, actual
                 continue
 
+                        # --- INICIO de jugadas ---
             jugadas = []
             total_nivel = 0
             usadas_categorias = set()
 
             while len(jugadas) < 3:
-                dispo = [
+                # 1) Filtrar mano por coste (nivel) y categoría
+                disponibles = [
                     c for c in actual.mano
                     if total_nivel + c.nivel <= 10
                     and obtener_categoria(c) not in usadas_categorias
                 ]
-                if not dispo:
+                if not disponibles:
                     break
 
-                carta = max(dispo, key=lambda c: c.nivel)
+                # 2) Elegir carta de mayor nivel
+                carta = max(disponibles, key=lambda c: c.nivel)
                 categoria = obtener_categoria(carta)
 
+                # 3) Resolver AZAR / CERTERO
                 exito = True
                 dado = "-"
                 if carta.tipo == "AZAR":
@@ -259,6 +263,37 @@ def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones):
                 evento += ")"
 
                 if exito:
+                    # 4) REACCIÓN: Esquivar dañado antes de aplicar la carta
+                    if categoria in ("ataque", "sangrado", "fuego"):
+                        esquivar_c = next(
+                            (c for c in oponente.mano
+                             if c.accion_principal().upper() in ("EA", "EC")),
+                            None
+                        )
+                        if esquivar_c:
+                            eventos_reac = []
+                            aplicar_carta(esquivar_c, oponente, actual, eventos_reac)
+                            oponente.mano.remove(esquivar_c)
+                            oponente.descartadas.append(esquivar_c)
+                            evento += f" | REACCIÓN: {oponente.nombre} juega {esquivar_c.nombre} → {eventos_reac[0]}"
+                            detalle.append({
+                                "Partida": partida,
+                                "Turno": turno,
+                                "Jugador": actual.nombre,
+                                "Carta": carta.nombre,
+                                "Resultado": "Esquivado",
+                                "Evento": evento,
+                                "Vida J1": j1.vida,
+                                "Defensa J1": j1.estado["defensa"],
+                                "Vida J2": j2.vida,
+                                "Defensa J2": j2.estado["defensa"]
+                            })
+                            # descartamos la carta atacante y saltamos resto
+                            actual.mano.remove(carta)
+                            actual.descartadas.append(carta)
+                            continue
+
+                    # 5) Si no esquivó, aplicamos la carta normalmente
                     eventos_carta = []
                     aplicar_carta(carta, actual, oponente, eventos_carta)
                     if eventos_carta:
@@ -278,15 +313,17 @@ def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones):
                         "Dado": dado,
                         "Resultado": resultado,
                         "Evento": evento,
-                        "SaltaTurno": saltar,
                         "Vida J1": j1.vida,
                         "Defensa J1": j1.estado["defensa"],
                         "Vida J2": j2.vida,
                         "Defensa J2": j2.estado["defensa"]
                     })
 
+                # 6) Descartar siempre la carta atacante
                 actual.mano.remove(carta)
                 actual.descartadas.append(carta)
+            # --- FIN de jugadas ---
+
 
             actual.robar(1)
             actual.actualizar_estados()
