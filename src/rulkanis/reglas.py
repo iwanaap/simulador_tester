@@ -1,14 +1,64 @@
 # reglas.py
 # Implementación de reglas y handlers para Rulkanis
 import random
-from datos_rulkanis import nomenclaturas as _nomenclaturas
+from rulkanis.datos_rulkanis import nomenclaturas as _nomenclaturas
+from rulkanis.jugador import Jugador
+from rulkanis.carta import Carta
 
 # Lanzar dado de 10 caras (retorna entero 1–10)
 def lanzar_dado():
     return random.randint(1, 10)
 
+def determinar_exito_carta(carta: Carta, actual: Jugador):
+    """
+    Determina si una carta tiene éxito o falla al ser jugada por un jugador.
+
+    Args:
+        carta (Carta): La carta que se está evaluando.
+        actual (Jugador): El jugador que está jugando la carta.
+
+    Returns:
+        None: La función no retorna un valor, pero registra un evento con el resultado
+        de la evaluación de la carta (éxito o fallo) y, si aplica, el valor del dado lanzado.
+
+    Notas:
+        - Si la carta es de tipo "AZAR", se lanza un dado para determinar el éxito.
+        - El límite para el éxito del dado depende de si el jugador tiene suerte.
+        - El evento generado incluye el nombre de la carta, el resultado (éxito o fallo),
+          y el valor del dado si corresponde.
+    """
+    exito = True
+    dado = "-"
+    if carta.tipo == "AZAR":
+        d = lanzar_dado()
+        limite = 4 if actual.tiene_suerte() else 6
+        exito = d >= limite
+        dado = d
+
+    resultado = "Éxito" if exito else "Fallo"
+    evento = f"{carta.nombre} ({resultado}"
+    if dado != "-":
+        evento += f", dado={dado}"
+    evento += ")"
+
+    return exito, evento, resultado, dado
+
 # Obtener categoría principal de la carta (ataque, defensa, etc.)
-def obtener_categoria(carta):
+def obtener_categoria(carta: Carta):
+    """
+    Obtiene la categoría de una carta basada en su código de acción principal.
+    La función recupera el código de acción principal de la carta, lo procesa 
+    eliminando espacios en blanco y convirtiéndolo a mayúsculas, y luego lo 
+    compara con una lista predefinida de nomenclaturas. Si se encuentra una 
+    coincidencia, se devuelve la categoría correspondiente; de lo contrario, 
+    se devuelve None.
+
+    Args:
+        carta (Carta): Una instancia de la clase Carta que representa la carta 
+                       cuya categoría se desea determinar.
+        str o None: La categoría de la carta si se encuentra una coincidencia 
+                    en las nomenclaturas; de lo contrario, None.
+    """
     codigo = carta.accion_principal().strip().upper()
     for n in _nomenclaturas:
         if n['codigo'] == codigo:
@@ -16,7 +66,7 @@ def obtener_categoria(carta):
     return None
 
 # Aplica daño considerando esquiva y defensa
-def aplicar_dano(jugador, cantidad):
+def aplicar_dano(jugador: Jugador, cantidad: int):
     # Esquiva
     if jugador.estado.get('esquiva', False):
         jugador.estado['esquiva'] = False
@@ -179,9 +229,12 @@ HANDLERS = {
     'RC': accion_RC
 }
 
+
 # Aplica todos los handlers de una carta combinada
-def aplicar_carta(carta, actual, oponente, eventos):
+def aplicar_carta(
+    carta: Carta, jugador_actual: Jugador, jugador_oponente: Jugador, eventos: list
+):
     for code in carta.nomenclatura.split('+'):
-        fn = HANDLERS.get(code.strip().upper())
-        if fn:
-            fn(carta, actual, oponente, eventos)
+        accion = HANDLERS.get(code.strip().upper())
+        if accion:
+            accion(carta, jugador_actual, jugador_oponente, eventos)
