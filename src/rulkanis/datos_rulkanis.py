@@ -536,7 +536,7 @@ equipamiento_sets_nominales = {
         ],
         "BOTAS": ["AL+CA", "FA+PA", "PA"],
         "CASCO": ["BS", "EA+AL", "AL"],
-        "PECHERA": ["AN+SC", "AL+BLA", "BLA", "AN", "EA"],
+        "PECHERA": ["AN+SC", "AL+BLA", "BLA", "AN", "EA", "BD"],
         "GUANTES": ["AC", "BDN", "BD"],
     },
     "Nishuk Ashai": {
@@ -559,7 +559,53 @@ equipamiento_sets_nominales = {
         ],
         "BOTAS": ["BDF", "FA+BD", "EA"],
         "CASCO": ["BS", "AL+RC", "AL"],
-        "PECHERA": ["AC+FC", "BVM", "BLA", "CA"],
+        "PECHERA": ["AC+FC", "BVM", "BLA", "CA", "AL", "PA"],
         "GUANTES": ["BDF", "BDN", "BD"],
     },
-}
+    'Uke Gajur': {
+        'ARMA':    [
+            'AN+BDF', 
+            'AN+BDN', 
+            'AC+PA', 
+            'AC', 
+            'SC', 
+            'BDF', 
+            'SA', 
+            'BDN', 
+            'EA+AL', 
+            'EA+PC', 
+            'AL', 
+            'BD', 
+            'EA', 
+            'AL', 
+            'PA'
+        ],
+        'BOTAS':   ['AC', 'EA'],
+        'CASCO':   ['AL+SA', 'AL+BD', 'AL'],
+        'PECHERA': ['BVG', 'AN+SA', 'BDF', 'AN', 'PA', 'AL'],
+        'GUANTES': ['BLA', 'SA', 'AL']
+        },
+    'Rougur Ivaiesk': {
+        'ARMA':    [
+            'AC+FC', 
+            'FC+PC', 
+            'AN+CA', 
+            'BLA', 
+            'BS', 
+            'AC', 
+            'AL+FA', 
+            'BDN', 
+            'AL+PA', 
+            'AN', 
+            'BD', 
+            'AL', 
+            'FA', 
+            'PA', 
+            'EA'
+        ],
+        'BOTAS':   ['SC', 'AN', 'FA'],
+        'CASCO':   ['BS', 'AL+RC', 'AL'],
+        'PECHERA': ['SC+FC', 'PC+BDN', 'AC', 'PC', 'EA', 'AL'],
+        'GUANTES': ['BLA', 'FC', 'BD']
+        }
+    }
