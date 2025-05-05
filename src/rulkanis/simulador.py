@@ -247,7 +247,7 @@ def simular_partida(
                                 "Partida": partida,
                                 "Turno": turno,
                                 "Jugador": jugador_actual.nombre,
-                                "Carta": carta.nombre,
+                                "Carta": carta.nombre, 
                                 "Resultado": "Esquivado",
                                 "Evento": evento,
                                 "Vida J1": j1.vida,
