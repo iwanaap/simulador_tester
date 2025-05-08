@@ -1,15 +1,15 @@
 import random
 
 class Jugador:
-    def __init__(self, nombre, mazo_cartas, origen_set):
+    def __init__(self, nombre: str, mazo_cartas: list, origen_set: dict):
         self.nombre = nombre
         self.mazo = list(mazo_cartas)
         random.shuffle(self.mazo)
         self.origen_set = origen_set
-        self.mano = []
+        self.mano: list = []
         self.vida = 15
         self.suerte_turnos = 0
-        self.descartadas = []
+        self.descartadas: list = []
         self.estado = {
             "defensa": 0,
             "sangrado": 0,

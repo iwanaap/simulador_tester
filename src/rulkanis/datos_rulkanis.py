@@ -469,6 +469,8 @@ nomenclaturas = [
     },
 ]
 
+# Distribución de equipamiento por nivel
+# key: nivel correspondiente, value: numero de cartas por nivel
 distribucion_equipamiento = {
     "Armas": {5: 1, 4: 2, 3: 3, 2: 4, 1: 5},
     "Pechera": {5: 1, 4: 1, 3: 1, 2: 1, 1: 2},

@@ -8,8 +8,6 @@ from rulkanis.datos_rulkanis import cartas_accion, distribucion_equipamiento, eq
 from rulkanis.reglas import lanzar_dado, obtener_categoria, determinar_exito_carta, aplicar_carta
 from rulkanis.carta import Carta
 from rulkanis.jugador import Jugador
-from rulkanis.logger import Logger
-from rulkanis.mazo import construir_lista_cartas, 
 
 
 def construir_lista_cartas():
@@ -164,15 +162,6 @@ def simular_partida(
     jugador_actual: Jugador,
     jugador_oponente: Jugador,
 ):
-    logger = Logger(
-        partida=partida,
-        turno=0,
-        jugador=jugador_actual.nombre,
-        fase="",
-        evento="",
-        j1=j1,
-        j2=j2,
-    )
     resumen = []
     detalle = []
 
@@ -186,17 +175,21 @@ def simular_partida(
         for evento in eventos_ini:
             print("  >", evento)
 
-        logger.actualizar_campos(
+        # — LOGEAR inicio de turno, incluso si salta —
+        detalle.append(
             {
-                "turno": turno,
-                "jugador": jugador_actual.nombre,
-                "fase": "InicioTurno",
-                "evento": eventos_ini,
+                "Partida": partida,
+                "Turno": turno,
+                "Jugador": jugador_actual.nombre,
+                "Fase": "InicioTurno",
+                "Evento": "; ".join(eventos_ini) or "—",
+                "SaltaTurno": saltar,
+                "Vida J1": j1.vida,
+                "Defensa J1": j1.estado["defensa"],
+                "Vida J2": j2.vida,
+                "Defensa J2": j2.estado["defensa"],
             }
         )
-
-        # — LOGEAR inicio de turno, incluso si salta —
-        logger.log_inicio_turno(detalle=detalle, saltar=saltar)
 
         if saltar:
             print(f"{jugador_actual.nombre} pierde el turno")
@@ -249,15 +242,20 @@ def simular_partida(
                         jugador_oponente.mano.remove(carta_de_esquive)
                         jugador_oponente.descartadas.append(carta_de_esquive)
                         evento += f" | REACCIÓN: {jugador_oponente.nombre} juega {carta_de_esquive.nombre} → {eventos_reaccion[0]}"
-                        
-                        logger.actualizar_campos({'jugador': jugador_oponente.nombre})
-                        logger.log_reaccion(
-                            detalle=detalle,
-                            resultado="Esquivado" if jugador_oponente.estado["esquiva"] else "Fallido",
-                            carta=carta_de_esquive,
-                            evento=evento,
+                        detalle.append(
+                            {
+                                "Partida": partida,
+                                "Turno": turno,
+                                "Jugador": jugador_actual.nombre,
+                                "Carta": carta.nombre, 
+                                "Resultado": "Esquivado",
+                                "Evento": evento,
+                                "Vida J1": j1.vida,
+                                "Defensa J1": j1.estado["defensa"],
+                                "Vida J2": j2.vida,
+                                "Defensa J2": j2.estado["defensa"],
+                            }
                         )
-
                         # descartamos la carta atacante y saltamos resto
                         jugador_actual.mano.remove(carta)
                         jugador_actual.descartadas.append(carta)
@@ -273,13 +271,22 @@ def simular_partida(
                 categorias_jugadas.add(categoria)
                 cartas_jugadas.append(carta)
 
-                logger.actualizar_campos({'jugador': jugador_actual.nombre})
-                logger.log_fin_turno(
-                    detalle=detalle,
-                    carta=carta,
-                    dado=dado,
-                    resultado=resultado,
-                    evento=evento,
+                detalle.append(
+                    {
+                        "Partida": partida,
+                        "Turno": turno,
+                        "Jugador": jugador_actual.nombre,
+                        "Carta": carta.nombre,
+                        "Nivel": carta.nivel,
+                        "Tipo": carta.tipo,
+                        "Dado": dado,
+                        "Resultado": resultado,
+                        "Evento": evento,
+                        "Vida J1": j1.vida,
+                        "Defensa J1": j1.estado["defensa"],
+                        "Vida J2": j2.vida,
+                        "Defensa J2": j2.estado["defensa"],
+                    }
                 )
 
             # 6) Descartar siempre la carta atacante
