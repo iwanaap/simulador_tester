@@ -287,7 +287,7 @@ cartas_accion = [
         "nivel": 3,
     },
     {"nombre": "ESQUIVAR CERTERO", "nomenclatura": "EC", "nivel": 3},
-    {"nombre": "ESQUIVAR AZAR + ATAQUE LIGERO", "nomenclatura": "EA +AL", "nivel": 2},
+    {"nombre": "ESQUIVAR AZAR + ATAQUE LIGERO", "nomenclatura": "EA+AL", "nivel": 2},
     {"nombre": "ATAQUE NORMAL", "nomenclatura": "AN", "nivel": 2},
     {"nombre": "SANGRADO AZAR", "nomenclatura": "SA", "nivel": 2},
     {"nombre": "CONGELAR AZAR", "nomenclatura": "CA", "nivel": 2},
@@ -472,11 +472,11 @@ nomenclaturas = [
 # Distribución de equipamiento por nivel
 # key: nivel correspondiente, value: numero de cartas por nivel
 distribucion_equipamiento = {
-    "Armas": {5: 1, 4: 2, 3: 3, 2: 4, 1: 5},
-    "Pechera": {5: 1, 4: 1, 3: 1, 2: 1, 1: 2},
-    "Casco": {3: 1, 2: 1, 1: 1},
-    "Botas": {3: 1, 2: 1, 1: 1},
-    "Guantes": {3: 1, 2: 1, 1: 1},
+    "ARMA": {5: 1, 4: 2, 3: 3, 2: 4, 1: 5},
+    "PECHERA": {5: 1, 4: 1, 3: 1, 2: 1, 1: 2},
+    "CASCO": {3: 1, 2: 1, 1: 1},
+    "BOTAS": {3: 1, 2: 1, 1: 1},
+    "GUANTES": {3: 1, 2: 1, 1: 1},
 }
 
 equipamiento_sets = {

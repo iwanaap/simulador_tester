@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from rulkanis.datos_rulkanis import cartas_accion, distribucion_equipamiento, equipamiento_sets_nominales
 from rulkanis.carta import Carta
 
@@ -154,7 +155,11 @@ def elegir_cartas_por_nivel_random(cartas_disponibles: list, nivel: int, cantida
     seleccion: list = random.sample(opciones, cantidad)
     return seleccion
 
-def construir_mazo_random(nombre_jugador):
+def construir_mazo_random(nombre_jugador, seed: int = None):
+
+    # Fijar la semilla para reproducibilidad
+    random.seed(seed)
+    np.random.seed(seed)
 
     todas_cartas = construir_lista_cartas()
     mazo = []
@@ -192,7 +197,24 @@ def construir_mazo_random(nombre_jugador):
                 for carta in disponibles
                 if carta.nivel == nivel and carta not in usados
             ]
-            elegidos = random.sample(cartas_pieza, cantidad)
+            print('-' * 100)
+            print(f'parte: {parte}')
+            print('distribucion_equipamiento:')
+            print(distribucion_cartas_pieza)
+            print('nomenclaturas_disponibles:')
+            print(nomenclaturas_disponibles)
+            print('-' * 50)
+            print(f'cartas_pieza:')
+            print(cartas_pieza)
+            print('-' * 50)
+            print(f'set_jugador:')
+            print(set_jugador)
+            print('-' * 50)
+            print(f'nivel: {nivel}, cantidad: {cantidad}')
+            print('-' * 50)
+            print("usados")
+            print(usados)
+            elegidos = np.random.choice(cartas_pieza, cantidad)
             mazo.extend(elegidos)
             usados.extend(elegidos)
         

@@ -9,112 +9,7 @@ from rulkanis.reglas import lanzar_dado, obtener_categoria, determinar_exito_car
 from rulkanis.carta import Carta
 from rulkanis.jugador import Jugador
 from rulkanis.logger import Logger
-from rulkanis.mazo import construir_lista_cartas, 
-
-
-def construir_lista_cartas():
-    """
-    Construye una lista de objetos de tipo Carta a partir de una lista de diccionarios predefinida
-    llamada 'cartas_accion'.
-
-    Retorna:
-        list: Una lista de objetos Carta, donde cada objeto se crea utilizando los valores de las
-        claves 'nombre', 'nomenclatura' y 'nivel' de cada diccionario en 'cartas_accion'.
-    """
-    return [Carta(c["nombre"], c["nomenclatura"], c["nivel"]) for c in cartas_accion]
-
-
-def seleccionar_parte(parte, sets_disponibles):
-    """
-    Permite al usuario seleccionar una parte específica de un conjunto disponible.
-
-    Args:
-        parte (str): El nombre de la parte que se desea seleccionar.
-        sets_disponibles (dict): Un diccionario donde las claves son los nombres de los conjuntos
-                                 y los valores son diccionarios que contienen las partes disponibles.
-
-    Returns:
-        tuple: Una tupla que contiene:
-            - key (str): El nombre del conjunto seleccionado.
-            - valor (varios): El valor asociado a la parte seleccionada dentro del conjunto.
-
-    Raises:
-        ValueError: Si la entrada del usuario no es un número válido o está fuera del rango.
-    """
-    print(f"\nSelecciona {parte.upper()}:")
-    nombres = list(sets_disponibles.keys())
-    for i, nombre in enumerate(nombres):
-        print(f"  {i+1}. {nombre}")
-    while True:
-        try:
-            sel = int(input("Número del set: ")) - 1
-            if 0 <= sel < len(nombres):
-                key = nombres[sel]
-                return key, sets_disponibles[key][parte.upper()]
-        except:
-            print("Entrada inválida.")
-
-
-def elegir_cartas_por_nivel(cartas_disponibles, nivel, cantidad):
-    opciones = [c for c in cartas_disponibles if c.nivel == nivel]
-    seleccion = []
-    print(f"\nCartas disponibles de nivel {nivel}:")
-    for i, carta in enumerate(opciones):
-        print(f"  {i+1}. {carta}")
-    while len(seleccion) < cantidad:
-        try:
-            idx = int(input("Elige carta: ")) - 1
-            if 0 <= idx < len(opciones):
-                seleccion.append(opciones[idx])
-        except:
-            print("Entrada inválida.")
-    return seleccion
-
-
-def construir_mazo_combinado(nombre_jugador):
-    print(f"\n--- {nombre_jugador.upper()} ---")
-    todas = construir_lista_cartas()
-    mazo = []
-    origen = {}
-
-    # Mapeo para que coincida con las claves de distribución
-    EQUIP_KEYS = {
-        'ARMA': 'Armas',
-        'PECHERA': 'Pechera',
-        'CASCO': 'Casco',
-        'BOTAS': 'Botas',
-        'GUANTES': 'Guantes'
-    }
-
-    for parte in ["ARMA", "BOTAS", "CASCO", "PECHERA", "GUANTES"]:
-        set_name, noms = seleccionar_parte(parte, equipamiento_sets_nominales)
-        origen[parte] = set_name
-
-        # Filtramos las cartas de ese set
-        disp = [c for c in todas if c.nomenclatura in noms]
-        usados = []
-
-        # Obtenemos la distribución correcta usando la clave plural
-        clave_dist = EQUIP_KEYS[parte]
-        dist = distribucion_equipamiento.get(clave_dist, {})
-
-        for nivel, cantidad in dist.items():
-            cand = [c for c in disp if c.nivel == nivel and c not in usados]
-            elegidos = cand[:cantidad]
-            mazo.extend(elegidos)
-            usados.extend(elegidos)
-
-    # Ahora sí agregamos las 10 cartas extras
-    print("\n--- Selección de 10 cartas adicionales ---")
-    extras = {1:2, 2:2, 3:2, 4:2, 5:2}  # nivel: cantidad
-    for nivel, cantidad in extras.items():
-        mazo.extend(elegir_cartas_por_nivel(todas, nivel, cantidad))
-
-    print(f"\nResumen del mazo de {nombre_jugador} (total {len(mazo)} cartas):")
-    for c in mazo:
-        print(" -", c)
-
-    return mazo, origen
+from rulkanis.mazo import construir_mazo_combinado
 
 
 def aplicar_efectos_estado(jugador: Jugador, estado: dict):
@@ -329,8 +224,11 @@ def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones):
         resumen_total.extend(resumen)
         detalle_total.extend(detalle)
 
-    df_res = pd.DataFrame(resumen)
-    df_det = pd.DataFrame(detalle)
+
+    df_res = pd.DataFrame(resumen_total)
+    df_det = pd.DataFrame(detalle_total)
+
+    # print(df_det['partida'])
     conteo = df_res["Ganador"].value_counts()
     total = len(df_res)
 
