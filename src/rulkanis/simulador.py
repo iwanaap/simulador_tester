@@ -207,7 +207,7 @@ def simular_partida(
     return resumen, detalle
 
 
-def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones):
+def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones, write_excel=True):
     resumen_total = []
     detalle_total = []
 
@@ -224,13 +224,13 @@ def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones):
         resumen_total.extend(resumen)
         detalle_total.extend(detalle)
 
-
-    df_res = pd.DataFrame(resumen_total)
-    df_det = pd.DataFrame(detalle_total)
+    print(f'len(resumen_total) = {len(resumen_total)}')
+    df_resumen = pd.DataFrame(resumen_total)
+    df_detalle = pd.DataFrame(detalle_total)
 
     # print(df_det['partida'])
-    conteo = df_res["Ganador"].value_counts()
-    total = len(df_res)
+    conteo = df_resumen["Ganador"].value_counts()
+    total = len(df_resumen)
 
     resumen_final = []
     for jugador, origen in [("Jugador 1", origen1), ("Jugador 2", origen2)]:
@@ -243,25 +243,29 @@ def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones):
             "Cartas del mazo": ", ".join(c.nombre for c in (mazo1 if jugador=="Jugador 1" else mazo2))
         })
 
-    df_jug = pd.DataFrame(resumen_final)
+    df_resumen_final = pd.DataFrame(resumen_final)
 
-    filename = "resultados_simulacion.xlsx"
-    try:
-        with pd.ExcelWriter(filename) as writer:
-            df_jug.to_excel(writer, sheet_name="Resumen", index=False)
-            df_det.to_excel(writer, sheet_name="Detalle", index=False)
-        print(f"\nSimulación finalizada. Resultados en '{filename}'")
-    except PermissionError:
-        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        fn2 = f"resultados_simulacion_{ts}.xlsx"
-        with pd.ExcelWriter(fn2) as writer:
-            df_jug.to_excel(writer, sheet_name="Resumen", index=False)
-            df_det.to_excel(writer, sheet_name="Detalle", index=False)
-        print(f"\nEl archivo estaba abierto. Guardé resultados en '{fn2}'")
+    if write_excel:
+        print("\nGuardando resultados en Excel...")
+        filename = "resultados_simulacion.xlsx"
+        try:
+            with pd.ExcelWriter(filename) as writer:
+                df_resumen_final.to_excel(writer, sheet_name="Resumen", index=False)
+                df_detalle.to_excel(writer, sheet_name="Detalle", index=False)
+            print(f"\nSimulación finalizada. Resultados en '{filename}'")
+        except PermissionError:
+            ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            fn2 = f"resultados_simulacion_{ts}.xlsx"
+            with pd.ExcelWriter(fn2) as writer:
+                df_resumen_final.to_excel(writer, sheet_name="Resumen", index=False)
+                df_detalle.to_excel(writer, sheet_name="Detalle", index=False)
+            print(f"\nEl archivo estaba abierto. Guardé resultados en '{fn2}'")
 
 
 if __name__ == "__main__":
     mazo1, origen1 = construir_mazo_combinado("Jugador 1")
     mazo2, origen2 = construir_mazo_combinado("Jugador 2")
     reps = int(input("\n¿Cuántas simulaciones quieres?: "))
-    simular_varias_partidas(mazo1, origen1, mazo2, origen2, reps)
+    ask_write = input("¿Guardar resultados en Excel? (S/N): ")
+    write_excel = ask_write.strip().upper() == "S"
+    simular_varias_partidas(mazo1, origen1, mazo2, origen2, reps, write_excel)

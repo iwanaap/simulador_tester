@@ -72,13 +72,6 @@ def construir_mazo_combinado(nombre_jugador):
     origen = {}
 
     # Mapeo para que coincida con las claves de distribución
-    EQUIP_KEYS = {
-        'ARMA': 'Armas',
-        'PECHERA': 'Pechera',
-        'CASCO': 'Casco',
-        'BOTAS': 'Botas',
-        'GUANTES': 'Guantes'
-    }
 
     for parte in ["ARMA", "BOTAS", "CASCO", "PECHERA", "GUANTES"]:
         set_name, noms = seleccionar_pieza_equipamiento(parte, equipamiento_sets_nominales)
@@ -86,17 +79,14 @@ def construir_mazo_combinado(nombre_jugador):
 
         # Filtramos las cartas de ese set
         disp = [c for c in todas if c.nomenclatura in noms]
-        usados = []
 
         # Obtenemos la distribución correcta usando la clave plural
-        clave_dist = EQUIP_KEYS[parte]
-        dist = distribucion_equipamiento.get(clave_dist, {})
+        dist = distribucion_equipamiento.get(parte, {})
 
         for nivel, cantidad in dist.items():
-            cand = [c for c in disp if c.nivel == nivel and c not in usados]
+            cand = [c for c in disp if c.nivel == nivel and c]
             elegidos = cand[:cantidad]
             mazo.extend(elegidos)
-            usados.extend(elegidos)
 
     # Ahora sí agregamos las 10 cartas extras
     print("\n--- Selección de 10 cartas adicionales ---")
@@ -166,13 +156,6 @@ def construir_mazo_random(nombre_jugador, seed: int = None):
     set_jugador = {}
 
     # Mapeo para que coincida con las claves de distribución
-    EQUIP_KEYS = {
-        'ARMA': 'Armas',
-        'PECHERA': 'Pechera',
-        'CASCO': 'Casco',
-        'BOTAS': 'Botas',
-        'GUANTES': 'Guantes'
-    }
 
     for parte in ["ARMA", "BOTAS", "CASCO", "PECHERA", "GUANTES"]:
         nombre_set, nomenclaturas_disponibles = seleccionar_pieza_random(
@@ -186,37 +169,18 @@ def construir_mazo_random(nombre_jugador, seed: int = None):
             for carta in todas_cartas
             if carta.nomenclatura in nomenclaturas_disponibles
         ]
-        usados = []
 
         # Obtenemos la distribucion de cantidad de cartas por nivel para la pieza escogida
-        distribucion_cartas_pieza = distribucion_equipamiento.get(EQUIP_KEYS[parte], {})
+        distribucion_cartas_pieza = distribucion_equipamiento.get(parte, {})
 
         for nivel, cantidad in distribucion_cartas_pieza.items():
             cartas_pieza = [
                 carta
                 for carta in disponibles
-                if carta.nivel == nivel and carta not in usados
+                if carta.nivel == nivel and carta
             ]
-            print('-' * 100)
-            print(f'parte: {parte}')
-            print('distribucion_equipamiento:')
-            print(distribucion_cartas_pieza)
-            print('nomenclaturas_disponibles:')
-            print(nomenclaturas_disponibles)
-            print('-' * 50)
-            print(f'cartas_pieza:')
-            print(cartas_pieza)
-            print('-' * 50)
-            print(f'set_jugador:')
-            print(set_jugador)
-            print('-' * 50)
-            print(f'nivel: {nivel}, cantidad: {cantidad}')
-            print('-' * 50)
-            print("usados")
-            print(usados)
             elegidos = np.random.choice(cartas_pieza, cantidad)
             mazo.extend(elegidos)
-            usados.extend(elegidos)
         
     # Agregamos 10 cartas extras aleatorias
     distribucion_extras = {1:2, 2:2, 3:2, 4:2, 5:2}  # nivel: cantidad

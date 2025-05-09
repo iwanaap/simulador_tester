@@ -1,6 +1,6 @@
 # simulador.py
 # -*- coding: utf-8 -*-
-
+import time
 from rulkanis.simulador import simular_varias_partidas
 from rulkanis.mazo import construir_mazo_combinado, construir_mazo_random
 
@@ -16,5 +16,13 @@ if __name__ == "__main__":
     else:
         print("Opción inválida. Saliendo.")
         exit(1)
-    rep = int(input("\n¿Cuántas simulaciones quieres?: "))
-    simular_varias_partidas(mazo1, origen1, mazo2, origen2, rep)
+    
+    repeticiones = int(input("\n¿Cuántas simulaciones quieres?: "))
+
+    ask_write = input("¿Guardar resultados en Excel? (S/N): ")
+    write_excel = ask_write.strip().upper() == "S"
+
+    start = time.perf_counter()
+    simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones, write_excel)
+    end = time.perf_counter()
+    print(f"\nSimulación completada en {end - start:.2f} segundos.")
