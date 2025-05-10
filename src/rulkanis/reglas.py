@@ -5,10 +5,6 @@ from rulkanis.datos_rulkanis import nomenclaturas as _nomenclaturas
 from rulkanis.jugador import Jugador
 from rulkanis.carta import Carta
 
-# Lanzar dado de 10 caras (retorna entero 1–10)
-def lanzar_dado():
-    return random.randint(1, 10)
-
 def determinar_exito_carta(carta: Carta, actual: Jugador):
     """
     Determina si una carta tiene éxito o falla al ser jugada por un jugador.
@@ -30,7 +26,7 @@ def determinar_exito_carta(carta: Carta, actual: Jugador):
     exito = True
     dado = "-"
     if carta.tipo == "AZAR":
-        d = lanzar_dado()
+        d = actual.lanzar_dado()
         limite = 4 if actual.tiene_suerte() else 6
         exito = d >= limite
         dado = d
@@ -83,20 +79,20 @@ def aplicar_dano(jugador: Jugador, cantidad: int):
     return f"{def_val} absorbido, {restante} a vida (vida ahora {jugador.vida})"
 
 # Handlers de acciones específicas
-def accion_AL(carta, actual, oponente, eventos):
+def accion_AL(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     evento = aplicar_dano(oponente, 1)
     eventos.append(f"Ataque Ligero: {evento}")
 
-def accion_AN(carta, actual, oponente, eventos):
+def accion_AN(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     evento = aplicar_dano(oponente, 2)
     eventos.append(f"Ataque Normal: {evento}")
 
-def accion_AC(carta, actual, oponente, eventos):
+def accion_AC(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     evento = aplicar_dano(oponente, 3)
     eventos.append(f"Ataque Crítico: {evento}")
 
-def accion_SA(carta, actual, oponente, eventos):
-    d = lanzar_dado()
+def accion_SA(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
+    d = actual.lanzar_dado()
     if d >= 6:
         oponente.estado['sangrado'] = 3
         evento = aplicar_dano(oponente, 1)
@@ -105,14 +101,14 @@ def accion_SA(carta, actual, oponente, eventos):
         eventos.append(f"Sangrado Azar: fallido (dado={d})")
 
 
-def accion_SC(carta, actual, oponente, eventos):
+def accion_SC(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     oponente.estado['sangrado'] = 3
     evento = aplicar_dano(oponente, 1)
     eventos.append("Sangrado Certero: aplicado (1×3 turnos)")
 
 
-def accion_FA(carta, actual, oponente, eventos):
-    d = lanzar_dado()
+def accion_FA(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
+    d = actual.lanzar_dado()
     if d >= 6:
         oponente.estado['fuego'] = 3
         evento = aplicar_dano(oponente, 1)
@@ -121,44 +117,44 @@ def accion_FA(carta, actual, oponente, eventos):
         eventos.append(f"Fuego Azar: fallido (dado={d})")
 
 
-def accion_FC(carta, actual, oponente, eventos):
+def accion_FC(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     oponente.estado['fuego'] = 3
     evento = aplicar_dano(oponente, 1)
     eventos.append("Fuego Certero: aplicado (1×3 turnos)")
 
 
-def accion_BD(carta, actual, oponente, eventos):
+def accion_BD(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.estado['defensa'] += 1
     eventos.append("Bufo Defensa: +1 defensa")
 
 
-def accion_BDN(carta, actual, oponente, eventos):
+def accion_BDN(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.estado['defensa'] += 2
     eventos.append("Bufo Defensa Normal: +2 defensa")
 
 
-def accion_BDF(carta, actual, oponente, eventos):
+def accion_BDF(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.estado['defensa'] += 3
     eventos.append("Bufo Defensa Fuerte: +3 defensa")
 
 
-def accion_BVP(carta, actual, oponente, eventos):
+def accion_BVP(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.vida += 1
     eventos.append(f"Bufo Vida Pequeño: +1 vida (vida ahora {actual.vida})")
 
 
-def accion_BVM(carta, actual, oponente, eventos):
+def accion_BVM(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.vida += 2
     eventos.append(f"Bufo Vida Mediano: +2 vida (vida ahora {actual.vida})")
 
 
-def accion_BVG(carta, actual, oponente, eventos):
+def accion_BVG(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.vida += 3
     eventos.append(f"Bufo Vida Grande: +3 vida (vida ahora {actual.vida})")
 
 
-def accion_PA(carta, actual, oponente, eventos):
-    d = lanzar_dado()
+def accion_PA(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
+    d = actual.lanzar_dado()
     if d >= 6:
         oponente.estado['paralizado'] = 2
         eventos.append(f"Paralizar Azar: aplicado (dado={d}, 2 turnos)")
@@ -166,13 +162,13 @@ def accion_PA(carta, actual, oponente, eventos):
         eventos.append(f"Paralizar Azar: fallido (dado={d})")
 
 
-def accion_PC(carta, actual, oponente, eventos):
+def accion_PC(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     oponente.estado['paralizado'] = 2
     eventos.append("Paralizar Certero: aplicado (2 turnos)")
 
 
-def accion_CA(carta, actual, oponente, eventos):
-    d = lanzar_dado()
+def accion_CA(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
+    d = actual.lanzar_dado()
     if d >= 6:
         oponente.estado['congelado'] = 1
         eventos.append(f"Congelar Azar: aplicado (dado={d}, salta turno)")
@@ -180,24 +176,24 @@ def accion_CA(carta, actual, oponente, eventos):
         eventos.append(f"Congelar Azar: fallido (dado={d})")
 
 
-def accion_CC(carta, actual, oponente, eventos):
+def accion_CC(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     oponente.estado['congelado'] = 1
     eventos.append("Congelar Certero: aplicado (salta turno)")
 
 
-def accion_BLA(carta, actual, oponente, eventos):
+def accion_BLA(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     for s in ['sangrado', 'fuego', 'paralizado', 'congelado']:
         actual.estado[s] = 0
     eventos.append("Limpieza: estados negativos eliminados")
 
 
-def accion_BS(carta, actual, oponente, eventos):
+def accion_BS(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.suerte_turnos = 4
     eventos.append("Bufo Suerte: activado (4 turnos, limite=4)")
 
 
-def accion_EA(carta, actual, oponente, eventos):
-    d = lanzar_dado()
+def accion_EA(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
+    d = actual.lanzar_dado()
     if d >= 6:
         actual.estado['esquiva'] = True
         eventos.append(f"Esquivar Azar: activado (dado={d})")
@@ -205,12 +201,12 @@ def accion_EA(carta, actual, oponente, eventos):
         eventos.append(f"Esquivar Azar: fallido (dado={d})")
 
 
-def accion_EC(carta, actual, oponente, eventos):
+def accion_EC(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.estado['esquiva'] = True
     eventos.append("Esquivar Certero: activado")
 
 
-def accion_RC(carta, actual, oponente, eventos):
+def accion_RC(carta: Carta, actual: Jugador, oponente: Jugador, eventos: list):
     actual.robar(1)
     oponente.robar(1)
     eventos.append("Robo Carta: ambos roban 1 carta")

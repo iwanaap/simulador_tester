@@ -5,51 +5,11 @@ import random
 import datetime
 import pandas as pd
 from rulkanis.datos_rulkanis import cartas_accion, distribucion_equipamiento, equipamiento_sets_nominales
-from rulkanis.reglas import lanzar_dado, obtener_categoria, determinar_exito_carta, aplicar_carta
+from rulkanis.reglas import obtener_categoria, determinar_exito_carta, aplicar_carta
 from rulkanis.carta import Carta
 from rulkanis.jugador import Jugador
 from rulkanis.logger import Logger
 from rulkanis.mazo import construir_mazo_combinado
-
-
-def aplicar_efectos_estado(jugador: Jugador, estado: dict):
-    eventos = []
-    saltar = False
-
-    # Sangrado
-    if estado.get("sangrado",0) > 0:
-        jugador.vida -= 1
-        estado["sangrado"] -= 1
-        eventos.append("Sangrado: -1 vida")
-
-    # Fuego
-    if estado.get("fuego",0) > 0:
-        if estado["defensa"] > 0:
-            estado["defensa"] -= 1
-            eventos.append("Fuego: -1 defensa")
-        else:
-            jugador.vida -= 1
-            eventos.append("Fuego: -1 vida")
-        estado["fuego"] -= 1
-
-    # Congelar
-    if estado.get("congelado",0) > 0:
-        estado["congelado"] -= 1
-        eventos.append("Congelado: pierde turno")
-        saltar = True
-    # Paralizar (siempre chequeamos, no es elif de congelado)
-    if estado.get("paralizado", 0) > 0:
-        # umbral cambia si tiene suerte activada
-        limite = 4 if jugador.tiene_suerte() else 6
-        d = lanzar_dado()
-        if d < limite:
-            eventos.append(f"Paralizado: dado {d} (<{limite}), pierde turno")
-            saltar = True
-        else:
-            eventos.append(f"Paralizado: dado {d} (≥{limite}), puede jugar")
-        estado["paralizado"] -= 1
-
-    return eventos, estado, saltar
 
 
 def simular_partida(
@@ -75,9 +35,8 @@ def simular_partida(
     while j1.puede_continuar() and j2.puede_continuar():
         turno += 1
         print(f"\nTurno {turno} - {jugador_actual.nombre}")
-        eventos_ini, jugador_actual.estado, saltar = aplicar_efectos_estado(
-            jugador_actual, jugador_actual.estado
-        )
+
+        eventos_ini = jugador_actual.aplicar_efectos_de_estado()
         for evento in eventos_ini:
             print("  >", evento)
 
@@ -91,12 +50,11 @@ def simular_partida(
         )
 
         # — LOGEAR inicio de turno, incluso si salta —
-        logger.log_inicio_turno(detalle=detalle, saltar=saltar)
+        logger.log_inicio_turno(detalle=detalle, saltar=jugador_actual.salta_turno)
 
-        if saltar:
+        if jugador_actual.salta_turno:
             print(f"{jugador_actual.nombre} pierde el turno")
-            jugador_actual.actualizar_estados()
-            jugador_actual.robar(1)
+            jugador_actual.terminar_turno()
             jugador_actual, jugador_oponente = jugador_oponente, jugador_actual
             continue
 
@@ -182,8 +140,7 @@ def simular_partida(
             jugador_actual.descartadas.append(carta)
             # --- FIN de jugadas ---
 
-        jugador_actual.robar(1)
-        jugador_actual.actualizar_estados()
+        jugador_actual.terminar_turno()
         jugador_actual, jugador_oponente = jugador_oponente, jugador_actual
 
     if j1.vida > j2.vida:

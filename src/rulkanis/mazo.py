@@ -179,7 +179,10 @@ def construir_mazo_random(nombre_jugador, seed: int = None):
                 for carta in disponibles
                 if carta.nivel == nivel and carta
             ]
-            elegidos = np.random.choice(cartas_pieza, cantidad)
+            try:
+                elegidos = np.random.choice(cartas_pieza, cantidad)
+            except ValueError as e: 
+                elegidos = np.random.choice(todas_cartas, cantidad)
             mazo.extend(elegidos)
         
     # Agregamos 10 cartas extras aleatorias
