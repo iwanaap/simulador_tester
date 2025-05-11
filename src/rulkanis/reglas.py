@@ -39,28 +39,6 @@ def determinar_exito_carta(carta: Carta, actual: Jugador):
 
     return exito, evento, resultado, dado
 
-# Obtener categoría principal de la carta (ataque, defensa, etc.)
-def obtener_categoria(carta: Carta):
-    """
-    Obtiene la categoría de una carta basada en su código de acción principal.
-    La función recupera el código de acción principal de la carta, lo procesa 
-    eliminando espacios en blanco y convirtiéndolo a mayúsculas, y luego lo 
-    compara con una lista predefinida de nomenclaturas. Si se encuentra una 
-    coincidencia, se devuelve la categoría correspondiente; de lo contrario, 
-    se devuelve None.
-
-    Args:
-        carta (Carta): Una instancia de la clase Carta que representa la carta 
-                       cuya categoría se desea determinar.
-        str o None: La categoría de la carta si se encuentra una coincidencia 
-                    en las nomenclaturas; de lo contrario, None.
-    """
-    codigo = carta.accion_principal().strip().upper()
-    for n in _nomenclaturas:
-        if n['codigo'] == codigo:
-            return n['categoria']
-    return None
-
 # Aplica daño considerando esquiva y defensa
 def aplicar_dano(jugador: Jugador, cantidad: int):
     # Esquiva

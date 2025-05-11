@@ -5,11 +5,41 @@ import random
 import datetime
 import pandas as pd
 from rulkanis.datos_rulkanis import cartas_accion, distribucion_equipamiento, equipamiento_sets_nominales
-from rulkanis.reglas import obtener_categoria, determinar_exito_carta, aplicar_carta
+from rulkanis.reglas import determinar_exito_carta, aplicar_carta
 from rulkanis.carta import Carta
 from rulkanis.jugador import Jugador
-from rulkanis.logger import Logger
+from rulkanis.logger import Logger, EventLogger
 from rulkanis.mazo import construir_mazo_combinado
+
+
+def fase_reaccion(
+    carta_jugada: Carta,
+    carta_de_esquive: Carta,
+    jugador_actual: Jugador,
+    jugador_oponente: Jugador,
+    logger: Logger,
+    evento: str,
+):
+
+    eventos_reaccion = []
+    aplicar_carta(
+        carta=carta_de_esquive,
+        jugador_actual=jugador_oponente,
+        jugador_oponente=jugador_actual,
+        eventos=eventos_reaccion,
+    )
+    evento += f" | REACCIÓN: {jugador_oponente.nombre} juega {carta_de_esquive.nombre} → {eventos_reaccion[0]}"
+
+    logger.actualizar_campos({'jugador': jugador_oponente.nombre})
+    logger.log_reaccion(
+        resultado="Esquivado" if jugador_oponente.estado["esquiva"] else "Fallido",
+        carta=carta_de_esquive,
+        evento=evento,
+    )
+    # oponente descarta la carta de esquive
+    jugador_oponente.descartar(carta_de_esquive)
+    # jugador activate descarta la carta atacante
+    jugador_actual.descartar(carta_jugada)
 
 
 def simular_partida(
@@ -29,7 +59,6 @@ def simular_partida(
         j2=j2,
     )
     resumen = []
-    detalle = []
 
     turno = 0
     while j1.puede_continuar() and j2.puede_continuar():
@@ -50,7 +79,7 @@ def simular_partida(
         )
 
         # — LOGEAR inicio de turno, incluso si salta —
-        logger.log_inicio_turno(detalle=detalle, saltar=jugador_actual.salta_turno)
+        logger.log_inicio_turno(saltar=jugador_actual.salta_turno)
 
         if jugador_actual.salta_turno:
             print(f"{jugador_actual.nombre} pierde el turno")
@@ -68,21 +97,19 @@ def simular_partida(
             cartas_disponibles = [
                 carta for carta in jugador_actual.mano
                 if nivel_total + carta.nivel <= 10
-                and obtener_categoria(carta) not in categorias_jugadas
+                and carta.categoria not in categorias_jugadas
             ]
             if not cartas_disponibles:
                 break
 
             # 2) Elegir carta de mayor nivel
             carta = max(cartas_disponibles, key=lambda carta: carta.nivel)
-            categoria = obtener_categoria(carta)
 
             # 3) Resolver AZAR / CERTERO
             exito, evento, resultado, dado = determinar_exito_carta(carta, jugador_actual)
 
             if exito:
-                # 4) REACCIÓN: Esquivar dañado antes de aplicar la carta
-                if categoria in ("ataque", "sangrado", "fuego"):
+                if carta.categoria in ("ataque", "sangrado", "fuego"):
                     carta_de_esquive = next(
                         (
                             carta
@@ -92,29 +119,15 @@ def simular_partida(
                         None,
                     )
                     if carta_de_esquive:
-                        eventos_reaccion = []
-                        aplicar_carta(
-                            carta=carta_de_esquive,
-                            jugador_actual=jugador_oponente,
-                            jugador_oponente=jugador_actual,
-                            eventos=eventos_reaccion,
-                        )
-                        jugador_oponente.mano.remove(carta_de_esquive)
-                        jugador_oponente.descartadas.append(carta_de_esquive)
-                        evento += f" | REACCIÓN: {jugador_oponente.nombre} juega {carta_de_esquive.nombre} → {eventos_reaccion[0]}"
-                        
-                        logger.actualizar_campos({'jugador': jugador_oponente.nombre})
-                        logger.log_reaccion(
-                            detalle=detalle,
-                            resultado="Esquivado" if jugador_oponente.estado["esquiva"] else "Fallido",
-                            carta=carta_de_esquive,
-                            evento=evento,
-                        )
-
-                        # descartamos la carta atacante y saltamos resto
-                        jugador_actual.mano.remove(carta)
-                        jugador_actual.descartadas.append(carta)
+                        fase_reaccion(
+                            carta_jugada=carta,
+                            carta_de_esquive=carta_de_esquive,
+                            jugador_actual=jugador_actual,
+                            jugador_oponente=jugador_oponente,
+                            logger=logger,
+                            evento=evento)
                         continue
+                # # 4) REACCIÓN: Esquivar dañado antes de aplicar la carta                    
 
                 # 5) Si no esquivó, aplicamos la carta normalmente
                 eventos_carta = []
@@ -123,12 +136,11 @@ def simular_partida(
                     evento += " | " + " & ".join(eventos_carta)
 
                 nivel_total += carta.nivel
-                categorias_jugadas.add(categoria)
+                categorias_jugadas.add(carta.categoria)
                 cartas_jugadas.append(carta)
 
                 logger.actualizar_campos({'jugador': jugador_actual.nombre})
                 logger.log_fin_turno(
-                    detalle=detalle,
                     carta=carta,
                     dado=dado,
                     resultado=resultado,
@@ -136,8 +148,7 @@ def simular_partida(
                 )
 
             # 6) Descartar siempre la carta atacante
-            jugador_actual.mano.remove(carta)
-            jugador_actual.descartadas.append(carta)
+            jugador_actual.descartar(carta)
             # --- FIN de jugadas ---
 
         jugador_actual.terminar_turno()
@@ -161,7 +172,7 @@ def simular_partida(
         }
     )
 
-    return resumen, detalle
+    return resumen, logger.detalle
 
 
 def simular_varias_partidas(mazo1, origen1, mazo2, origen2, repeticiones, write_excel=True):

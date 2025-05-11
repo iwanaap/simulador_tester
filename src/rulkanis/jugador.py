@@ -47,6 +47,16 @@ class Jugador:
         self.robar(1)
         self.actualizar_estados()
 
+    def tiene_carta_de_esquive(self):
+        
+
+    def descartar(self, carta):
+        if carta in self.mano:
+            self.mano.remove(carta)
+            self.descartadas.append(carta)
+        else:
+            raise ValueError("Carta no está en la mano")
+
     def actualizar_estados(self):
         if self.suerte_turnos > 0:
             self.suerte_turnos -= 1
