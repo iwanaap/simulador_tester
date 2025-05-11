@@ -1,5 +1,37 @@
 from .carta import Carta
-from .jugador import Jugador
+from typing import Protocol
+
+class JugadorProtocol(Protocol):
+    nombre: str
+    vida: int
+    estado: dict
+    mazo: list
+    mano: list
+    suerte_turnos: int
+    descartadas: list
+    salta_turno: bool
+
+    def lanzar_dado(self) -> int:
+        pass
+
+    def aplicar_efectos_de_estado(self, evento):
+        pass
+
+
+class EventLogger:
+    def __init__(self):
+        self.events = []
+    
+    def log_event(self, event: str):
+        self.events.append(event)
+
+    def get_event_log(self, separator: str = " | "):
+        return separator.join(self.events)
+    
+    def print_events(self):
+        for event in self.events:
+            print(event)
+
 
 class Logger:
     def __init__(
@@ -8,17 +40,17 @@ class Logger:
         turno: int,
         jugador: str,
         fase: str,
-        evento: str,
-        j1: Jugador,
-        j2: Jugador,
+        j1: JugadorProtocol,
+        j2: JugadorProtocol,
     ):
         self.partida = partida
         self.turno = turno
         self.jugador = jugador
         self.fase = fase
-        self.evento = evento
         self.j1 = j1
         self.j2 = j2
+        self.evento: EventLogger = EventLogger()
+        self.detalle: list = []
 
 
     def actualizar_campos(self, campos: dict):
@@ -28,15 +60,15 @@ class Logger:
             else:
                 raise KeyError(f"El campo '{key}' no existe en la clase Logger.")
 
-    def log_inicio_turno(self, detalle: list, saltar: bool):
+    def log_inicio_turno(self, saltar: bool):
         
-        detalle.append(
+        self.detalle.append(
             {
                 "Partida": self.partida,
                 "Turno": self.turno,
                 "Jugador": self.jugador,
                 "Fase": "InicioTurno",
-                "Evento": "; ".join(self.evento) or "—",
+                "Evento": self.evento.get_event_log(separator="; ") or "—",
                 "SaltaTurno": saltar,
                 "Vida J1": self.j1.vida,
                 "Defensa J1": self.j1.estado["defensa"],
@@ -44,9 +76,10 @@ class Logger:
                 "Defensa J2": self.j2.estado["defensa"]
             }
         )
+        self.evento = EventLogger()  # Reiniciar el evento para el siguiente turno
 
-    def log_reaccion(self, detalle: list, resultado: str, carta: Carta, evento: str):
-        detalle.append(
+    def log_reaccion(self, resultado: str, carta: Carta):
+        self.detalle.append(
             {
                 "Partida": self.partida,
                 "Turno": self.turno,
@@ -54,17 +87,18 @@ class Logger:
                 "Carta": carta.nombre,
                 "Fase": "Reaccion",
                 "Resultado": resultado,
-                "Evento": evento,
+                "Evento": self.evento.get_event_log(),
                 "Vida J1": self.j1.vida,
                 "Defensa J1": self.j1.estado["defensa"],
                 "Vida J2": self.j2.vida,
                 "Defensa J2": self.j2.estado["defensa"]
             }
         )
+        self.evento = EventLogger()  # Reiniciar el evento para el siguiente turno
 
-    def log_fin_turno(self, detalle: list, carta: Carta, dado: int, resultado: str, evento: str):
+    def log_fin_jugada(self, carta: Carta, dado: int, resultado: str):
         
-        detalle.append(
+        self.detalle.append(
             {
                 "Partida": self.partida,
                 "Turno": self.turno,
@@ -74,10 +108,11 @@ class Logger:
                 "Tipo": carta.tipo,
                 "Dado": dado,
                 "Resultado": resultado,
-                "Evento": evento,
+                "Evento": " | " + self.evento.get_event_log(separator=" & "),
                 "Vida J1": self.j1.vida,
                 "Defensa J1": self.j1.estado["defensa"],
                 "Vida J2": self.j2.vida,
                 "Defensa J2": self.j2.estado["defensa"]
             }
         )
+        self.evento = EventLogger()  # Reiniciar el evento para el siguiente turno

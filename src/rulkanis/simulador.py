@@ -18,7 +18,6 @@ def fase_reaccion(
     jugador_actual: Jugador,
     jugador_oponente: Jugador,
     logger: Logger,
-    evento: str,
 ):
 
     eventos_reaccion = []
@@ -28,13 +27,13 @@ def fase_reaccion(
         jugador_oponente=jugador_actual,
         eventos=eventos_reaccion,
     )
-    evento += f" | REACCIÓN: {jugador_oponente.nombre} juega {carta_de_esquive.nombre} → {eventos_reaccion[0]}"
-
+    logger.evento.log_event(
+        f"REACCIÓN: {jugador_oponente.nombre} juega {carta_de_esquive.nombre} → {eventos_reaccion[0]}"
+    )
     logger.actualizar_campos({'jugador': jugador_oponente.nombre})
     logger.log_reaccion(
         resultado="Esquivado" if jugador_oponente.estado["esquiva"] else "Fallido",
-        carta=carta_de_esquive,
-        evento=evento,
+        carta=carta_de_esquive
     )
     # oponente descarta la carta de esquive
     jugador_oponente.descartar(carta_de_esquive)
@@ -54,7 +53,6 @@ def simular_partida(
         turno=0,
         jugador=jugador_actual.nombre,
         fase="",
-        evento="",
         j1=j1,
         j2=j2,
     )
@@ -65,16 +63,14 @@ def simular_partida(
         turno += 1
         print(f"\nTurno {turno} - {jugador_actual.nombre}")
 
-        eventos_ini = jugador_actual.aplicar_efectos_de_estado()
-        for evento in eventos_ini:
-            print("  >", evento)
+        jugador_actual.aplicar_efectos_de_estado(logger.evento)
+        logger.evento.print_events()
 
         logger.actualizar_campos(
             {
                 "turno": turno,
                 "jugador": jugador_actual.nombre,
-                "fase": "InicioTurno",
-                "evento": eventos_ini,
+                "fase": "InicioTurno"
             }
         )
 
@@ -124,27 +120,25 @@ def simular_partida(
                             carta_de_esquive=carta_de_esquive,
                             jugador_actual=jugador_actual,
                             jugador_oponente=jugador_oponente,
-                            logger=logger,
-                            evento=evento)
+                            logger=logger)
                         continue
                 # # 4) REACCIÓN: Esquivar dañado antes de aplicar la carta                    
 
                 # 5) Si no esquivó, aplicamos la carta normalmente
                 eventos_carta = []
                 aplicar_carta(carta, jugador_actual, jugador_oponente, eventos_carta)
-                if eventos_carta:
-                    evento += " | " + " & ".join(eventos_carta)
+                for evento in eventos_carta:
+                    logger.evento.log_event(evento)
 
                 nivel_total += carta.nivel
                 categorias_jugadas.add(carta.categoria)
                 cartas_jugadas.append(carta)
 
                 logger.actualizar_campos({'jugador': jugador_actual.nombre})
-                logger.log_fin_turno(
+                logger.log_fin_jugada(
                     carta=carta,
                     dado=dado,
-                    resultado=resultado,
-                    evento=evento,
+                    resultado=resultado
                 )
 
             # 6) Descartar siempre la carta atacante

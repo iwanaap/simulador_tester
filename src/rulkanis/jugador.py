@@ -1,4 +1,5 @@
 import random
+from .logger import EventLogger
 
 class Jugador:
     def __init__(self, nombre: str, mazo_cartas: list, origen_set: dict):
@@ -47,9 +48,6 @@ class Jugador:
         self.robar(1)
         self.actualizar_estados()
 
-    def tiene_carta_de_esquive(self):
-        
-
     def descartar(self, carta):
         if carta in self.mano:
             self.mano.remove(carta)
@@ -61,29 +59,28 @@ class Jugador:
         if self.suerte_turnos > 0:
             self.suerte_turnos -= 1
 
-    def aplicar_efectos_de_estado(self):
-        eventos = []
+    def aplicar_efectos_de_estado(self, event_logger: EventLogger):
         self.salta_turno = False
         # Sangrado
         if self.estado.get("sangrado",0) > 0:
             self.vida -= 1
             self.estado["sangrado"] -= 1
-            eventos.append("Sangrado: -1 vida")
+            event_logger.log_event("Sangrado: -1 vida")
 
         # Fuego
         if self.estado.get("fuego",0) > 0:
             if self.estado["defensa"] > 0:
                 self.estado["defensa"] -= 1
-                eventos.append("Fuego: -1 defensa")
+                event_logger.log_event("Fuego: -1 defensa")
             else:
                 self.vida -= 1
-                eventos.append("Fuego: -1 vida")
+                event_logger.log_event("Fuego: -1 vida")
             self.estado["fuego"] -= 1
 
         # Congelar
         if self.estado.get("congelado",0) > 0:
             self.estado["congelado"] -= 1
-            eventos.append("Congelado: pierde turno")
+            event_logger.log_event("Congelado: pierde turno")
             self.salta_turno = True
 
         # Paralizar (siempre chequeamos, no es elif de congelado)
@@ -92,13 +89,11 @@ class Jugador:
             limite = 4 if self.tiene_suerte() else 6
             d = self.lanzar_dado()
             if d < limite:
-                eventos.append(f"Paralizado: dado {d} (<{limite}), pierde turno")
+                event_logger.log_event(f"Paralizado: dado {d} (<{limite}), pierde turno")
                 self.salta_turno = True
             else:
-                eventos.append(f"Paralizado: dado {d} (≥{limite}), puede jugar")
+                event_logger.log_event(f"Paralizado: dado {d} (≥{limite}), puede jugar")
             self.estado["paralizado"] -= 1
-
-        return eventos
 
 
     def __str__(self):
