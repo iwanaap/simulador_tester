@@ -575,14 +575,14 @@ equipamiento_sets_nominales = {
             'SA', 
             'BDN', 
             'EA+AL', 
-            'EA+PC', 
+            'EA+AL', 
             'AL', 
             'BD', 
             'EA', 
             'AL', 
             'PA'
         ],
-        'BOTAS':   ['AC', 'EA'],
+        'BOTAS':   ['AC', 'PC', 'EA'],
         'CASCO':   ['AL+SA', 'AL+BD', 'AL'],
         'PECHERA': ['BVG', 'AN+SA', 'BDF', 'AN', 'PA', 'AL'],
         'GUANTES': ['BLA', 'SA', 'AL']
